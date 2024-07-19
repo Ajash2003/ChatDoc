@@ -83,7 +83,7 @@ def user_input(user_question):
 
 def main():
     st.set_page_config(page_title="ChatDoc", page_icon=":books:")
-
+    st.set_theme('dark')
     st.markdown("""
     <style>
     .main {
