@@ -83,21 +83,17 @@ def user_input(user_question):
 
 def main():
     st.set_page_config(page_title="ChatDoc", page_icon=":books:")
-    
     st.markdown("""
     <style>
-    body {
-        background-color: #1e1e1e; /* Dark background color */
-        color: #f0f0f5; /* Light text color */
-        font-family: 'Arial', sans-serif;
+    .main {
+        padding: 20px;
     }
     .stTextInput > div > div > input {
+        
         border: 1px solid #ddd;
         border-radius: 10px;
         padding: 10px;
         font-size: 18px;
-        background-color: #2b313e; /* Dark input background color */
-        color: #f0f0f5; /* Light text color */
     }
     .stButton button {
         background-color: #4CAF50;
@@ -106,23 +102,24 @@ def main():
         border-radius: 10px;
         border: none;
         font-size: 18px;
-        background-color: #4CAF50; /* Dark button background color */
     }
     .question-box {
         border: 2px solid #2196F3;
         border-radius: 10px;
         padding: 20px;
         margin-bottom: 20px;
-        background-color: #2b313e; /* Dark box background color */
+        background-color: #2b313e;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        font-family: 'Arial', sans-serif;
     }
     .answer-box {
         border: 2px solid #4CAF50;
         border-radius: 10px;
         padding: 20px;
         margin-bottom: 20px;
-        background-color: #475063; /* Dark box background color */
+        background-color: #475063;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        font-family: 'Arial', sans-serif;
     }
     .sidebar .sidebar-content {
         background-color: #f0f0f5;
