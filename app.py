@@ -57,7 +57,7 @@ def get_vector_store(text_chunks):
 
 def get_conversational_chain():
     prompt_template = """
-    Answer the question as detailed as possible from the provided context, make sure to provide all the details, if the answer is not in the
+    Answer the question as detailed as possible from the provided context, make sure to provide all the details,if the answer is given in points make sure to give the points in different lines, if the answer is not in the
     provided context just say, "Answer is not in the context", don't provide the wrong answer.
     Context: \n{context}\n
     Question: \n{question}\n
