@@ -57,7 +57,7 @@ def get_vector_store(text_chunks):
 
 def get_conversational_chain():
     prompt_template = """
-    Answer the question as detailed as possible from the provided context, make sure to provide all the details,if the answer is given in points make sure to give the points in different lines, if the answer is not in the
+    Answer the question as detailed as possible from the provided context, make sure to provide all the details, if the answer is given in points make sure to give the points in different lines, if the answer is not in the
     provided context just say, "Answer is not in the context", don't provide the wrong answer.
     Context: \n{context}\n
     Question: \n{question}\n
@@ -102,6 +102,10 @@ def main():
         border-radius: 10px;
         border: none;
         font-size: 18px;
+        cursor: pointer;
+    }
+    .stButton button:hover {
+        background-color: #45a049;
     }
     .question-box {
         border: 2px solid #2196F3;
@@ -147,8 +151,20 @@ def main():
     </style>
     """, unsafe_allow_html=True)
     
-    st.header("ChatDoc :books:")
-    st.markdown('<div class="header">Chat with your Documents Here</div>', unsafe_allow_html=True)
+    # Create two columns for header and clear button
+    header_cols = st.columns([0.8, 0.2])
+
+    with header_cols[0]:
+        st.header("ChatDoc :books:")
+        st.markdown('<div class="header">Chat with your Documents Here</div>', unsafe_allow_html=True)
+    with header_cols[1]:
+        st.write("")  # Add some vertical space
+        clear_button = st.button("Clear Chats")
+        if clear_button:
+            st.session_state.qa_pairs = []
+            st.session_state.question = ""
+            st.experimental_rerun()  # Rerun the app to reflect changes immediately
+
     # Initialize session state for storing questions and answers
     if "qa_pairs" not in st.session_state:
         st.session_state.qa_pairs = []
@@ -166,14 +182,14 @@ def main():
                     raw_text = ""
                     pdf_files = [file for file in doc_files if file.name.endswith('.pdf')]
                     ppt_files = [file for file in doc_files if file.name.endswith('.pptx')]
-                    doc_files = [file for file in doc_files if file.name.endswith('.docx')]
+                    docx_files = [file for file in doc_files if file.name.endswith('.docx')]
                     
                     if pdf_files:
                         raw_text += get_pdf_text(pdf_files)
                     if ppt_files:
                         raw_text += get_ppt_text(ppt_files)
-                    if doc_files:
-                        raw_text += get_doc_text(doc_files)
+                    if docx_files:
+                        raw_text += get_doc_text(docx_files)
 
                     text_chunks = get_text_chunks(raw_text)
                     get_vector_store(text_chunks)
@@ -190,9 +206,12 @@ def main():
                 answer = user_input(user_question)
                 # Store the question and answer in session state
                 st.session_state.qa_pairs.append((user_question, answer))
+                # Clear the input box after submitting the question
+                st.session_state.question = ""
+                st.experimental_rerun()  # Rerun the app to update the UI immediately
 
         # Display previous questions and answers
-        for question, answer in st.session_state.qa_pairs:
+        for question, answer in reversed(st.session_state.qa_pairs):
             st.markdown(f'<div class="question-box"><strong>Question:</strong><br>{question}</div>', unsafe_allow_html=True)
             st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{answer}</div>', unsafe_allow_html=True)
     else:
