@@ -160,7 +160,7 @@ def main():
         if clear_button:
             # Clear the session state variables
             st.session_state.qa_pairs = []
-            st.experimental_rerun()  # Rerun the app to reflect changes immediately
+            st.session_state.processed = False
 
     # Initialize session state for storing questions and answers
     if "qa_pairs" not in st.session_state:
