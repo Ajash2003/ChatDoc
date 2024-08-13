@@ -198,9 +198,9 @@ def main():
         with clear_button_col:
             if st.button("Clear Chats"):
                 st.session_state.qa_pairs = []
-                st.session_state.current_question = ""  # Clear the question input field
+                st.session_state.question = ""  # Clear the question input field
+                st.experimental_rerun()  # Refresh the app to clear the question field
 
-        # If a question is asked, process and display the answer
         if user_question:
             with st.spinner('Fetching answer...'):
                 answer = user_input(user_question)
