@@ -58,7 +58,7 @@ def get_vector_store(text_chunks):
 def get_conversational_chain():
     prompt_template = """
     Answer the question as detailed as possible from the provided context, make sure to provide all the details, if the answer is given in points make sure to give the points in different lines, if the answer is not in the
-    provided context just say, "Answer is not in the context", don't provide the wrong answer.
+    provided context just say, "Answer cannot be found", don't provide the wrong answer.
     Context: \n{context}\n
     Question: \n{question}\n
 
@@ -79,7 +79,12 @@ def user_input(user_question):
         {"input_documents": docs, "question": user_question},
         return_only_outputs=True
     )
-    return response["output_text"]
+    
+    # Return a default message if the answer is empty
+    answer = response.get("output_text", "").strip()
+    if not answer:
+        return "Answer cannot be found"
+    return answer
 
 def main():
     st.set_page_config(page_title="ChatDoc", page_icon=":books:")
@@ -148,19 +153,8 @@ def main():
     </style>
     """, unsafe_allow_html=True)
     
-    # Create two columns for header and clear button
-    header_cols = st.columns([0.8, 0.2])
-
-    with header_cols[0]:
-        st.header("ChatDoc :books:")
-        st.markdown('<div class="header">Chat with your Documents Here</div>', unsafe_allow_html=True)
-    with header_cols[1]:
-        st.write("")  # Add some vertical space
-        clear_button = st.button("Clear Chats")
-        if clear_button:
-            # Clear the session state variables
-            st.session_state.qa_pairs = []
-            st.session_state.processed = False
+    st.header("ChatDoc :books:")
+    st.markdown('<div class="header">Chat with your Documents Here</div>', unsafe_allow_html=True)
 
     # Initialize session state for storing questions and answers
     if "qa_pairs" not in st.session_state:
@@ -196,8 +190,14 @@ def main():
                 st.warning("Please upload at least one PDF, PPT, or DOC document before processing.")
 
     if st.session_state.processed:
-        user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")
-        
+        # Place question input and clear button in the same row
+        question_col, clear_button_col = st.columns([0.8, 0.2])
+        with question_col:
+            user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")
+        with clear_button_col:
+            if st.button("Clear Chats"):
+                st.session_state.qa_pairs = []
+
         if user_question:
             with st.spinner('Fetching answer...'):
                 answer = user_input(user_question)
