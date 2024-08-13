@@ -164,6 +164,7 @@ def main():
     if "processed" not in st.session_state:
         st.session_state.processed = False
 
+    # Sidebar for file uploads
     with st.sidebar:
         st.subheader("Your Uploaded Files : ")
         doc_files = st.file_uploader("Upload your PDFs, PPTs, or DOCs here:", accept_multiple_files=True, type=['pdf', 'pptx', 'docx'])
@@ -197,7 +198,9 @@ def main():
         with clear_button_col:
             if st.button("Clear Chats"):
                 st.session_state.qa_pairs = []
+                st.session_state.current_question = ""  # Clear the question input field
 
+        # If a question is asked, process and display the answer
         if user_question:
             with st.spinner('Fetching answer...'):
                 answer = user_input(user_question)
