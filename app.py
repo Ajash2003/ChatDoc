@@ -89,7 +89,6 @@ def main():
         padding: 20px;
     }
     .stTextInput > div > div > input {
-        
         border: 1px solid #ddd;
         border-radius: 10px;
         padding: 10px;
@@ -114,7 +113,6 @@ def main():
         margin-bottom: 20px;
         background-color: #2b313e;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        font-family: 'Arial', sans-serif;
     }
     .answer-box {
         border: 2px solid #4CAF50;
@@ -123,7 +121,6 @@ def main():
         margin-bottom: 20px;
         background-color: #475063;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        font-family: 'Arial', sans-serif;
     }
     .sidebar .sidebar-content {
         background-color: #f0f0f5;
