@@ -164,7 +164,6 @@ def main():
     if "processed" not in st.session_state:
         st.session_state.processed = False
 
-    # Sidebar for file uploads
     with st.sidebar:
         st.subheader("Your Uploaded Files : ")
         doc_files = st.file_uploader("Upload your PDFs, PPTs, or DOCs here:", accept_multiple_files=True, type=['pdf', 'pptx', 'docx'])
@@ -194,24 +193,16 @@ def main():
         # Place question input and clear button in the same row
         question_col, clear_button_col = st.columns([0.8, 0.2])
         with question_col:
-            # Use `st.text_input` with the key "question"
             user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")
         with clear_button_col:
             if st.button("Clear Chats"):
-                # Clear all conversations and reset state
                 st.session_state.qa_pairs = []
-                # Resetting the text input field directly is not allowed,
-                # so we manage the state via a dummy key approach.
-                st.session_state["question"] = ""
 
-        # If a question is asked, process and display the answer
         if user_question:
             with st.spinner('Fetching answer...'):
                 answer = user_input(user_question)
                 # Store the question and answer in session state
                 st.session_state.qa_pairs.append((user_question, answer))
-                # Ensure the text input field clears by updating the state
-                st.session_state["question"] = ""
 
         # Display previous questions and answers
         for question, answer in reversed(st.session_state.qa_pairs):
