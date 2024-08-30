@@ -128,16 +128,17 @@ def main():
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     .sidebar .sidebar-content {
-        background-color: #f0f0f5;
+        background-color: #2b313e;
         padding: 20px;
         border-radius: 10px;
     }
     .stFileUploader {
-        background-color: #fff;
-        border: 1px solid #ddd;
+        background-color: #2b313e;
+        border: 1px solid #2b313e;
         border-radius: 10px;
         padding: 10px;
         font-size: 18px;
+        color: white;
     }
     .header {
         font-size: 24px;
