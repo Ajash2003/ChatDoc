@@ -6,4 +6,4 @@ PyPDF2
 python-pptx
 faiss-cpu
 langchain_google_genai
-docx
+python-docx
