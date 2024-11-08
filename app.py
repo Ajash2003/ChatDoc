@@ -11,7 +11,6 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
-import re
 
 load_dotenv()
 
@@ -70,30 +69,6 @@ def get_conversational_chain():
     chain = load_qa_chain(model, chain_type="stuff", prompt=prompt)
     return chain
 
-# Function to format chemical and mathematical formulas
-chemical_pattern = re.compile(r"([A-Za-z]+)(\d*)")
-
-def format_answer_for_display(answer):
-    words = answer.split(" ")
-    formatted_words = []
-    
-    for word in words:
-        if chemical_pattern.search(word):
-            formatted_word = ""
-            matches = chemical_pattern.finditer(word)
-            for match in matches:
-                element, subscript = match.groups()
-                if subscript:
-                    formatted_word += f"{element}_{{{subscript}}}"
-                else:
-                    formatted_word += element
-            formatted_words.append(f"${formatted_word}$")
-        else:
-            formatted_words.append(word)
-    
-    formatted_answer = " ".join(formatted_words)
-    return f'<p>{formatted_answer}</p>'
-
 def user_input(user_question):
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
@@ -105,6 +80,7 @@ def user_input(user_question):
         return_only_outputs=True
     )
     
+    # Return a default message if the answer is empty
     answer = response.get("output_text", "").strip()
     if not answer:
         return "Answer cannot be found"
@@ -114,16 +90,78 @@ def main():
     st.set_page_config(page_title="ChatDoc", page_icon=":books:")
     st.markdown("""
     <style>
-    /* Styles omitted for brevity */
+    .main {
+        padding: 20px;
+    }
+    .stTextInput > div > div > input {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 18px;
+    }
+    .stButton button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+    }
+    .stButton button:hover {
+        background-color: #45a049;
+    }
+    .question-box {
+        border: 2px solid #2196F3;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #2b313e;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .answer-box {
+        border: 2px solid #4CAF50;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #475063;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .sidebar .sidebar-content {
+        background-color: #2b313e;
+        padding: 20px;
+        border-radius: 10px;
+    }
+    .stFileUploader {
+        background-color: #2b313e;
+        border: 1px solid #2b313e;
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 18px;
+        color: white;
+    }
+    .header {
+        font-size: 24px;
+        font-weight: bold;
+        padding: 20px 0;
+    }
+    .footer {
+        font-size: 14px;
+        color: #888;
+        padding: 10px 0;
+        text-align: center;
+    }
     </style>
     """, unsafe_allow_html=True)
     
     st.header("ChatDoc :books:")
     st.markdown('<div class="header">Chat with your Documents Here</div>', unsafe_allow_html=True)
 
+    # Initialize session state for storing questions and answers
     if "qa_pairs" not in st.session_state:
         st.session_state.qa_pairs = []
 
+    # Check if documents have been uploaded and processed
     if "processed" not in st.session_state:
         st.session_state.processed = False
 
@@ -153,6 +191,7 @@ def main():
                 st.warning("Please upload at least one PDF, PPT, or DOC document before processing.")
 
     if st.session_state.processed:
+        # Place question input and clear button in the same row
         question_col, clear_button_col = st.columns([0.8, 0.2])
         with question_col:
             user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")
@@ -163,12 +202,13 @@ def main():
         if user_question:
             with st.spinner('Fetching answer...'):
                 answer = user_input(user_question)
+                # Store the question and answer in session state
                 st.session_state.qa_pairs.append((user_question, answer))
 
+        # Display previous questions and answers
         for question, answer in reversed(st.session_state.qa_pairs):
             st.markdown(f'<div class="question-box"><strong>Question:</strong><br>{question}</div>', unsafe_allow_html=True)
-            formatted_answer = format_answer_for_display(answer)
-            st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{formatted_answer}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{answer}</div>', unsafe_allow_html=True)
     else:
         st.info("Please upload and process a document to start asking questions.")
 
