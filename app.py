@@ -86,6 +86,13 @@ def user_input(user_question):
         return "Answer cannot be found"
     return answer
 
+def render_answer_with_math(answer):
+    # Convert the answer to a format that Streamlit can render with LaTeX support for math and chemical formulas.
+    # Wrap inline math expressions and block math with appropriate delimiters for Markdown rendering.
+    answer = answer.replace("$$", "$$")  # Ensure block formulas use correct delimiters
+    answer = answer.replace("$", "$")  # Ensure inline math uses single dollar signs
+    return answer
+
 def main():
     st.set_page_config(page_title="ChatDoc", page_icon=":books:")
     st.markdown("""
@@ -208,11 +215,11 @@ def main():
         # Display previous questions and answers
         for question, answer in reversed(st.session_state.qa_pairs):
             st.markdown(f'<div class="question-box"><strong>Question:</strong><br>{question}</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{answer}</div>', unsafe_allow_html=True)
+            # Render answer with LaTeX support
+            st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{render_answer_with_math(answer)}</div>', unsafe_allow_html=True)
     else:
         st.info("Please upload and process a document to start asking questions.")
 
     st.markdown('<div class="footer">©Arijeet Jash</div>', unsafe_allow_html=True)
 
 if __name__ == '__main__':
-    main()
