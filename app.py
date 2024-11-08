@@ -1,3 +1,4 @@
+import re
 import streamlit as st
 from PyPDF2 import PdfReader
 from pptx import Presentation
@@ -13,8 +14,10 @@ from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 
 load_dotenv()
-
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+# Regex patterns to identify chemical and mathematical formulas
+formula_pattern = re.compile(r'([A-Za-z]+\d*)|(\d+/\d+)|(\d+.\d+)|([+\-*/^])|(\(.*?\))')
 
 def get_pdf_text(pdf_docs):
     text = ""
@@ -86,12 +89,19 @@ def user_input(user_question):
         return "Answer cannot be found"
     return answer
 
-def render_answer_with_math(answer):
-    # Convert the answer to a format that Streamlit can render with LaTeX support for math and chemical formulas.
-    # Wrap inline math expressions and block math with appropriate delimiters for Markdown rendering.
-    answer = answer.replace("$$", "$$")  # Ensure block formulas use correct delimiters
-    answer = answer.replace("$", "$")  # Ensure inline math uses single dollar signs
-    return answer
+def format_answer_for_display(answer):
+    # Find and wrap chemical/mathematical expressions in LaTeX delimiters
+    formatted_answer = ""
+    for match in formula_pattern.finditer(answer):
+        start, end = match.span()
+        # Add LaTeX inline delimiters around detected formulas
+        formatted_answer += f"${answer[start:end]}$"
+    
+    # Check if answer has any LaTeX content
+    if "$" in formatted_answer:
+        return f'<p>{formatted_answer}</p>'
+    else:
+        return answer
 
 def main():
     st.set_page_config(page_title="ChatDoc", page_icon=":books:")
@@ -164,11 +174,9 @@ def main():
     st.header("ChatDoc :books:")
     st.markdown('<div class="header">Chat with your Documents Here</div>', unsafe_allow_html=True)
 
-    # Initialize session state for storing questions and answers
     if "qa_pairs" not in st.session_state:
         st.session_state.qa_pairs = []
 
-    # Check if documents have been uploaded and processed
     if "processed" not in st.session_state:
         st.session_state.processed = False
 
@@ -198,7 +206,6 @@ def main():
                 st.warning("Please upload at least one PDF, PPT, or DOC document before processing.")
 
     if st.session_state.processed:
-        # Place question input and clear button in the same row
         question_col, clear_button_col = st.columns([0.8, 0.2])
         with question_col:
             user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")
@@ -209,14 +216,11 @@ def main():
         if user_question:
             with st.spinner('Fetching answer...'):
                 answer = user_input(user_question)
-                # Store the question and answer in session state
-                st.session_state.qa_pairs.append((user_question, answer))
+                st.session_state.qa_pairs.append((user_question, format_answer_for_display(answer)))
 
-        # Display previous questions and answers
         for question, answer in reversed(st.session_state.qa_pairs):
             st.markdown(f'<div class="question-box"><strong>Question:</strong><br>{question}</div>', unsafe_allow_html=True)
-            # Render answer with LaTeX support
-            st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{render_answer_with_math(answer)}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{answer}</div>', unsafe_allow_html=True)
     else:
         st.info("Please upload and process a document to start asking questions.")
 
