@@ -202,8 +202,9 @@ def main():
         if user_question:
             with st.spinner('Fetching answer...'):
                 answer = user_input(user_question)
-                # Store the question and answer in session state
-                st.session_state.qa_pairs.append((user_question, answer))
+                # Store the question and answer in session state only if it's a new question
+                if not st.session_state.qa_pairs or st.session_state.qa_pairs[-1][0] != user_question:
+                    st.session_state.qa_pairs.append((user_question, answer))
 
         # Display previous questions and answers
         for question, answer in reversed(st.session_state.qa_pairs):
