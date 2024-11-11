@@ -213,7 +213,7 @@ def main():
     else:
         st.info("Please upload and process a document to start asking questions.")
 
-    st.markdown('<div class="footer">©Arijeet Jash</div>', unsafe_allow_html=True)
+    #st.markdown('<div class="footer">©Arijeet Jash</div>', unsafe_allow_html=True)
 
 if __name__ == '__main__':
     main()
