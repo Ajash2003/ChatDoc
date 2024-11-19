@@ -190,8 +190,9 @@ def main():
 
     if st.session_state.processed:  
         # Place question input in a single column  
-        user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")  
-
+        question_col, clear_button_col = st.columns([0.8, 0.2])
+        with question_col:
+            user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")
         with clear_button_col:
             if st.button("Clear"):
                 st.session_state.qa_pairs = []
