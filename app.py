@@ -11,6 +11,7 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate  
 from dotenv import load_dotenv  
 from fpdf import FPDF  
+import speech_recognition as sr  # Import SpeechRecognition
 
 load_dotenv()  
 
@@ -107,6 +108,27 @@ def generate_pdf(qa_pairs):
     pdf.output(file_path)  
     return file_path  
 
+# Function to handle voice input
+def listen_for_voice_input():
+    recognizer = sr.Recognizer()
+    mic = sr.Microphone()
+    
+    with mic as source:
+        recognizer.adjust_for_ambient_noise(source)
+        st.info("Listening... Please speak your question.")
+        audio = recognizer.listen(source)
+
+    try:
+        query = recognizer.recognize_google(audio)
+        st.success(f"You said: {query}")
+        return query
+    except sr.UnknownValueError:
+        st.error("Sorry, I couldn't understand that.")
+        return None
+    except sr.RequestError:
+        st.error("Could not request results from Google Speech Recognition service.")
+        return None
+
 def main():  
     st.set_page_config(page_title="ChatDoc", page_icon=":books:")  
     st.markdown("""  
@@ -200,40 +222,32 @@ def main():
                         raw_text += get_ppt_text(ppt_files)  
                     if docx_files:  
                         raw_text += get_doc_text(docx_files)  
-
                     text_chunks = get_text_chunks(raw_text)  
                     get_vector_store(text_chunks)  
                     st.session_state.processed = True  
-                    st.success("Processing complete. You can now ask questions.")  
-            else:  
-                st.warning("Please upload at least one PDF, PPT, or DOC document before processing.")  
+                    st.success("Documents processed successfully!")  
 
-    if st.session_state.processed:  
-        col1, col2 = st.columns([8, 2])
-        with col1:
-            user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")  
-        with col2:
-            if st.button("Clear", key="clear_chat"):
-                st.session_state.qa_pairs = []
+    # User input section
+    if st.session_state.processed:
+        st.subheader("Ask questions about your documents:")
 
-        if user_question:  
-            with st.spinner('Fetching answer...'):  
-                answer = user_input(user_question)  
-                if not st.session_state.qa_pairs or st.session_state.qa_pairs[-1][0] != user_question:  
-                    st.session_state.qa_pairs.append((user_question, answer))  
+        # Voice input button
+        if st.button("Ask Question by Voice"):
+            user_question = listen_for_voice_input()
+        else:
+            user_question = st.text_input("Type your question here:")
 
-        # Display previous questions and answers  
-        for question, answer in reversed(st.session_state.qa_pairs):  
-            st.markdown(f'<div class="question-box"><strong>Question:</strong><br>{question}</div>', unsafe_allow_html=True)  
-            st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{answer}</div>', unsafe_allow_html=True)  
+        if user_question:
+            answer = user_input(user_question)
+            st.session_state.qa_pairs.append((user_question, answer))
+            st.markdown(f'<div class="question-box"><strong>Q:</strong> {user_question}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="answer-box"><strong>A:</strong> {answer}</div>', unsafe_allow_html=True)
+    
+    # Provide option to download the chat history as a PDF
+    if st.session_state.qa_pairs:
+        if st.button("Download Chat as PDF"):
+            pdf_file = generate_pdf(st.session_state.qa_pairs)
+            st.download_button(label="Download PDF", data=open(pdf_file, 'rb'), file_name="chat_conversation.pdf", mime="application/pdf")
 
-        if st.session_state.qa_pairs:  
-            if st.button("Download Conversation as PDF"):  
-                pdf_path = generate_pdf(st.session_state.qa_pairs)  
-                with open(pdf_path, "rb") as file:  
-                    st.download_button("Download PDF", file, file_name="chat_conversation.pdf")  
-    else:  
-        st.info("Please upload and process a document to start asking questions.")  
-
-if __name__ == '__main__':  
+if __name__ == "__main__":  
     main()
