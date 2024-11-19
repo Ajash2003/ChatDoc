@@ -197,7 +197,7 @@ def main():
         with col1:
             user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")  
         with col2:
-            if st.button("Clear Chat", key="clear_chat"):
+            if st.button("Clear", key="clear_chat"):
                 st.session_state.qa_pairs = []
 
         if user_question:  
