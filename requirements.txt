@@ -9,5 +9,5 @@ langchain_google_genai
 python-docx
 fpdf
 SpeechRecognition 
-pyaudio
+PyAudio
 
