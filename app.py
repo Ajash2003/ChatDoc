@@ -190,7 +190,7 @@ def main():
 
     if st.session_state.processed:  
         # Place question input in a single column  
-        col1, col2 = st.columns([9, 1])
+        col1, col2 = st.columns([8, 2])
         with col1:
             user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")  
         with col2:
