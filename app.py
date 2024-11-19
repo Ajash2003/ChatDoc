@@ -11,7 +11,7 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate  
 from dotenv import load_dotenv  
 from fpdf import FPDF  
-import speech_recognition as sr  # Import SpeechRecognition
+import SpeechRecognition as sr
 
 load_dotenv()  
 
