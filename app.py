@@ -114,7 +114,7 @@ def main():
     .question-box {  
         border: 2px solid #2196F3;  
         border-radius: 10px;  
-        padding: 20px;  
+        padding: 15px;  
         margin-bottom: 20px;  
         background-color: #2b313e;  
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);  
