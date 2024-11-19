@@ -148,6 +148,27 @@ def main():
         background-color: #475063;  
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);  
     }   
+    .sidebar .sidebar-content {  
+        background-color: #2b313e;  
+        padding: 20px;  
+        border-radius: 10px;  
+    }  
+    .stFileUploader {  
+        background-color: #2b313e;  
+        border: 1px solid #2b313e;  
+        border-radius: 10px;  
+    } 
+    .header {
+        font-size: 24px;
+        font-weight: bold;
+        padding: 20px 0;
+    }
+    .footer {
+        font-size: 14px;
+        color: #888;
+        padding: 10px 0;
+        text-align: center;
+    }
     </style>
     """, unsafe_allow_html=True)
 
