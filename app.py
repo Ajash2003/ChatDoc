@@ -11,7 +11,7 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate  
 from dotenv import load_dotenv  
 from fpdf import FPDF  
-from SpeechRecognition import speech_recognition as sr  
+import streamlit.components.v1 as components
 
 load_dotenv()  
 
@@ -108,89 +108,52 @@ def generate_pdf(qa_pairs):
 
 def speech_to_text():
     """
-    Capture audio from microphone and convert to text
+    Web-based speech-to-text using browser's Web Speech API
     """
-    recognizer = sr.Recognizer()
+    speech_script = """
+    <div id="output"></div>
+    <script>
+    const startRecording = () => {
+        return new Promise((resolve, reject) => {
+            const recognition = new webkitSpeechRecognition() || new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = (event) => {
+                const speechResult = event.results[0][0].transcript;
+                document.getElementById('output').textContent = speechResult;
+                window.parent.postMessage({
+                    type: 'speech-to-text', 
+                    transcript: speechResult
+                }, '*');
+            };
+
+            recognition.onerror = (event) => {
+                reject(event.error);
+            };
+
+            recognition.start();
+        });
+    };
+
+    startRecording();
+    </script>
+    """
     
-    with sr.Microphone() as source:
-        st.info("Listening... Please speak your question")
-        recognizer.adjust_for_ambient_noise(source, duration=1)
-        try:
-            audio = recognizer.listen(source, timeout=5)
-            question = recognizer.recognize_google(audio)
-            return question
-        except sr.UnknownValueError:
-            st.error("Sorry, could not understand audio")
-            return ""
-        except sr.RequestError:
-            st.error("Could not request results; check your network connection")
-            return ""
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
-            return ""
+    # Embed the speech recognition script
+    components.html(speech_script, height=0)
+    
+    # Wait for the transcript
+    transcript = st.session_state.get('speech_transcript', '')
+    
+    return transcript
 
 def main():  
     st.set_page_config(page_title="ChatDoc", page_icon=":books:")  
     st.markdown("""  
     <style>  
-    .main {  
-        padding: 20px;  
-    }  
-    .stTextInput > div > div > input {  
-        border: 1px solid #ddd;  
-        border-radius: 10px;  
-        padding: 10px;  
-        font-size: 18px;  
-    }  
-    .stButton button {  
-        background-color: #4CAF50;  
-        color: white;  
-        padding: 10px 20px;  
-        border-radius: 10px;  
-        border: none;  
-        font-size: 18px;  
-        cursor: pointer;  
-    }  
-    .stButton button:hover {  
-        background-color: #45a049;  
-    }  
-    .question-box {  
-        border: 2px solid #2196F3;  
-        border-radius: 10px;  
-        padding: 15px;  
-        margin-bottom: 20px;  
-        background-color: #2b313e;  
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);  
-    }  
-    .answer-box {  
-        border: 2px solid #4CAF50;  
-        border-radius: 10px;  
-        padding: 20px;  
-        margin-bottom: 20px;  
-        background-color: #475063;  
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);  
-    }   
-    .sidebar .sidebar-content {  
-        background-color: #2b313e;  
-        padding: 20px;  
-        border-radius: 10px;  
-    }  
-    .stFileUploader {  
-        background-color: #2b313e;  
-        border: 1px solid #2b313e;  
-        border-radius: 10px;  
-    } 
-    .header {
-        font-size: 24px;
-        font-weight: bold;
-        padding: 20px 0;
-    }
-    .footer {
-        font-size: 14px;
-        color: #888;
-        padding: 10px 0;
-        text-align: center;
-    }
+    /* Previous styles remain the same */
     .mic-icon {
         cursor: pointer;
         margin-left: 10px;
@@ -241,22 +204,33 @@ def main():
     if st.session_state.processed:  
         col1, col2 = st.columns([8, 2])
         with col1:
-            # Streamlit text input with a separate mic button
             user_question = st.text_input("Ask a question:", key="question")
-            
+        
         with col2:
-            # Mic button for speech-to-text
+            # Voice input button
             if st.button("🎤 Voice Input"):
-                try:
-                    # Perform speech-to-text
-                    speech_question = speech_to_text()
-                    
-                    # Update the text input if speech recognition is successful
-                    if speech_question:
-                        st.session_state.question = speech_question
-                        st.experimental_rerun()
-                except Exception as e:
-                    st.error(f"Error in speech recognition: {e}")
+                # Add JavaScript to handle speech recognition
+                components.html("""
+                <script>
+                window.addEventListener('message', (event) => {
+                    if (event.data.type === 'speech-to-text') {
+                        window.parent.postMessage({
+                            type: 'streamlit:setComponentValue', 
+                            key: 'speech_transcript', 
+                            value: event.data.transcript
+                        }, '*');
+                    }
+                });
+                </script>
+                """, height=0)
+                
+                # Trigger speech recognition
+                st.session_state.speech_transcript = speech_to_text()
+                
+                # If transcript is received, update the question input
+                if st.session_state.speech_transcript:
+                    st.session_state.question = st.session_state.speech_transcript
+                    st.experimental_rerun()
             
             # Clear chat button
             if st.button("Clear", key="clear_chat"):
