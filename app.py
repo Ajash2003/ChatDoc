@@ -126,10 +126,7 @@ def main():
         margin-bottom: 20px;  
         background-color: #475063;  
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);  
-    }  
-    .clear-button {  
-        text-align: right;  
-    }  
+    }   
     .sidebar .sidebar-content {  
         background-color: #2b313e;  
         padding: 20px;  
