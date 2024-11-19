@@ -7,6 +7,4 @@ python-pptx
 faiss-cpu
 langchain_google_genai
 python-docx
-pytesseract
-pillow
-pdf2image
+
