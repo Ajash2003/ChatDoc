@@ -138,7 +138,11 @@ def main():
         border-radius: 10px;  
     }  
     </style>  
-    """, unsafe_allow_html=True)  
+    """, unsafe_allow_html=True)
+
+    st.header("ChatDoc :books:")
+    st.markdown('<div class="header">Chat with your Documents Here</div>', unsafe_allow_html=True)
+
 
     # Initialize session state for storing questions and answers  
     if "qa_pairs" not in st.session_state:  
@@ -191,7 +195,7 @@ def main():
     else:  
         st.info("Please upload and process a document to start asking questions.")  
 
-    st.markdown('<div class="footer">©Arijeet Jash</div>', unsafe_allow_html=True)  
+    #st.markdown('<div class="footer">©Arijeet Jash</div>', unsafe_allow_html=True)  
 
 if __name__ == '__main__':  
     main()
