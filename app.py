@@ -127,6 +127,9 @@ def main():
         background-color: #475063;  
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);  
     }  
+    .clear-button {  
+        text-align: right;  
+    }  
     .sidebar .sidebar-content {  
         background-color: #2b313e;  
         padding: 20px;  
@@ -190,7 +193,12 @@ def main():
 
     if st.session_state.processed:  
         # Place question input in a single column  
-        user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")  
+        col1, col2 = st.columns([9, 1])
+        with col1:
+            user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")  
+        with col2:
+            if st.button("Clear Chat", key="clear_chat"):
+                st.session_state.qa_pairs = []
 
         if user_question:  
             with st.spinner('Fetching answer...'):  
@@ -205,8 +213,6 @@ def main():
             st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{answer}</div>', unsafe_allow_html=True)  
     else:  
         st.info("Please upload and process a document to start asking questions.")  
-
-    #st.markdown('<div class="footer">©Arijeet Jash</div>', unsafe_allow_html=True)  
 
 if __name__ == '__main__':  
     main()
