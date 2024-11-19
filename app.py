@@ -152,6 +152,8 @@ def main():
     """, unsafe_allow_html=True)
 
     st.header("ChatDoc :books:")
+    st.markdown('<div class="header">Chat with your Documents Here</div>', unsafe_allow_html=True)
+
 
     # Initialize session state for storing questions and answers  
     if "qa_pairs" not in st.session_state:  
