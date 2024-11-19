@@ -11,14 +11,11 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate  
 from dotenv import load_dotenv  
 from fpdf import FPDF  
-from langdetect import detect  
-from googletrans import Translator  
 
 load_dotenv()  
 
-translator = Translator()  # Initialize the translator  
-
 # Configure the Google API key  
+# Ensure you have your Google API key set in your environment variable: GOOGLE_API_KEY  
 def get_pdf_text(pdf_docs):  
     text = ""  
     for pdf in pdf_docs:  
@@ -73,34 +70,21 @@ def get_conversational_chain():
     chain = load_qa_chain(model, chain_type="stuff", prompt=prompt)  
     return chain  
 
-def translate_text(text, target_language):  
-    try:  
-        return translator.translate(text, dest=target_language).text  
-    except Exception as e:  
-        return text  
-
 def user_input(user_question):  
-    user_language = detect(user_question)  # Detect language of user question  
-    translated_question = translate_text(user_question, "en")  # Translate to English  
-
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")  
     new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)  
-    docs = new_db.similarity_search(translated_question)  
+    docs = new_db.similarity_search(user_question)  
     chain = get_conversational_chain()  
 
     response = chain(  
-        {"input_documents": docs, "question": translated_question},  
+        {"input_documents": docs, "question": user_question},  
         return_only_outputs=True  
     )  
-
+    
+    # Return a default message if the answer is empty  
     answer = response.get("output_text", "").strip()  
     if not answer:  
         return "Answer cannot be found"  
-
-    # Translate the answer back to the user's language  
-    if user_language != "en":  
-        answer = translate_text(answer, user_language)  
-
     return answer  
 
 def generate_pdf(qa_pairs):  
@@ -163,12 +147,36 @@ def main():
         margin-bottom: 20px;  
         background-color: #475063;  
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);  
+    }   
+    .sidebar .sidebar-content {  
+        background-color: #2b313e;  
+        padding: 20px;  
+        border-radius: 10px;  
     }  
-    </style>  
+    .stFileUploader {  
+        background-color: #2b313e;  
+        border: 1px solid #2b313e;  
+        border-radius: 10px;  
+    } 
+    .header {
+        font-size: 24px;
+        font-weight: bold;
+        padding: 20px 0;
+    }
+    .footer {
+        font-size: 14px;
+        color: #888;
+        padding: 10px 0;
+        text-align: center;
+    }
+    </style>
     """, unsafe_allow_html=True)
 
-    st.header("ChatDoc :books: Multilingual Support Included")  
+    st.header("ChatDoc :books:")
+    st.markdown('<div class="header">Chat with your Documents Here</div>', unsafe_allow_html=True)
 
+
+    # Initialize session state for storing questions and answers  
     if "qa_pairs" not in st.session_state:  
         st.session_state.qa_pairs = []  
 
@@ -185,7 +193,7 @@ def main():
                     pdf_files = [file for file in doc_files if file.name.endswith('.pdf')]  
                     ppt_files = [file for file in doc_files if file.name.endswith('.pptx')]  
                     docx_files = [file for file in doc_files if file.name.endswith('.docx')]  
-
+                    
                     if pdf_files:  
                         raw_text += get_pdf_text(pdf_files)  
                     if ppt_files:  
@@ -201,12 +209,12 @@ def main():
                 st.warning("Please upload at least one PDF, PPT, or DOC document before processing.")  
 
     if st.session_state.processed:  
-        col1, col2 = st.columns([8, 2])  
-        with col1:  
+        col1, col2 = st.columns([8, 2])
+        with col1:
             user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")  
-        with col2:  
-            if st.button("Clear", key="clear_chat"):  
-                st.session_state.qa_pairs = []  
+        with col2:
+            if st.button("Clear", key="clear_chat"):
+                st.session_state.qa_pairs = []
 
         if user_question:  
             with st.spinner('Fetching answer...'):  
@@ -214,6 +222,7 @@ def main():
                 if not st.session_state.qa_pairs or st.session_state.qa_pairs[-1][0] != user_question:  
                     st.session_state.qa_pairs.append((user_question, answer))  
 
+        # Display previous questions and answers  
         for question, answer in reversed(st.session_state.qa_pairs):  
             st.markdown(f'<div class="question-box"><strong>Question:</strong><br>{question}</div>', unsafe_allow_html=True)  
             st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{answer}</div>', unsafe_allow_html=True)  
