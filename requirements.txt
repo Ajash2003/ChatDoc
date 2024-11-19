@@ -8,3 +8,5 @@ faiss-cpu
 langchain_google_genai
 python-docx
 fpdf
+langdetect 
+googletrans==4.0.0-rc1
