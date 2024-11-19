@@ -7,4 +7,4 @@ python-pptx
 faiss-cpu
 langchain_google_genai
 python-docx
-
+fpdf
