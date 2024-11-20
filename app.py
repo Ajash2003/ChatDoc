@@ -11,13 +11,15 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.pdfgen import canvas
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.units import inch
 import io
 
 load_dotenv()
 
-# [Helper functions remain unchanged]
+# [Previous functions remain the same until generate_pdf]
 def get_pdf_text(pdf_docs):
     text = ""
     for pdf in pdf_docs:
@@ -94,6 +96,12 @@ def generate_pdf(qa_pairs):
     
     # Create styles
     styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=16,
+        spaceAfter=30
+    )
     question_style = ParagraphStyle(
         'CustomQuestion',
         parent=styles['Normal'],
@@ -112,6 +120,12 @@ def generate_pdf(qa_pairs):
 
     # Build the PDF content
     story = []
+    
+    # Add title
+    #title = Paragraph("Chat Conversation", title_style)
+    #story.append(title)
+    
+    # Add QA pairs
     for idx, (question, answer) in enumerate(qa_pairs, start=1):
         # Add question
         q_text = f"Q{idx}: {question}"
@@ -133,13 +147,70 @@ def main():
     st.set_page_config(page_title="ChatDoc", page_icon=":books:")
     st.markdown("""
     <style>
-    .main { padding: 20px; }
-    .question-box { border: 2px solid #2196F3; border-radius: 10px; padding: 15px; margin-bottom: 20px; background-color: #2b313e; }
-    .answer-box { border: 2px solid #4CAF50; border-radius: 10px; padding: 20px; margin-bottom: 20px; background-color: #475063; }
+    .main {  
+        padding: 20px;  
+    }
+    .stTextInput > div > div > input {  
+        border: 1px solid #ddd;  
+        border-radius: 10px;  
+        padding: 10px;  
+        font-size: 18px;  
+    }
+    .stButton button {  
+        background-color: #4CAF50;  
+        color: white;  
+        padding: 10px 20px;  
+        border-radius: 10px;  
+        border: none;  
+        font-size: 18px;  
+        cursor: pointer;  
+    }
+    .stButton button:hover {  
+        background-color: #45a049;  
+    }
+    .question-box {  
+        border: 2px solid #2196F3;  
+        border-radius: 10px;  
+        padding: 15px;  
+        margin-bottom: 20px;  
+        background-color: #2b313e;  
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);  
+    }
+    .answer-box {  
+        border: 2px solid #4CAF50;  
+        border-radius: 10px;  
+        padding: 20px;  
+        margin-bottom: 20px;  
+        background-color: #475063;  
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);  
+    }   
+    .sidebar .sidebar-content {
+        background-color: #2b313e;
+        padding: 20px;
+        border-radius: 10px;
+    }
+    .stFileUploader {
+        background-color: #2b313e;
+        border: 1px solid #2b313e;
+        border-radius: 10px;
+    }
+    .header {
+        font-size: 24px;
+        font-weight: bold;
+        padding: 20px 0;
+    }
+    .footer {
+        font-size: 14px;
+        color: #888;
+        padding: 10px 0;
+        text-align: center;
+    }
     </style>
     """, unsafe_allow_html=True)
 
     st.header("ChatDoc :books:")
+    st.markdown('<div class="header">Chat with your Documents Here</div>', unsafe_allow_html=True)
+
 
     if "qa_pairs" not in st.session_state:
         st.session_state.qa_pairs = []
@@ -185,9 +256,6 @@ def main():
                 answer = user_input(user_question)
                 if not st.session_state.qa_pairs or st.session_state.qa_pairs[-1][0] != user_question:
                     st.session_state.qa_pairs.append((user_question, answer))
-                
-                # Clear the input field after submission
-                st.session_state.question = ""
 
         for question, answer in reversed(st.session_state.qa_pairs):
             st.markdown(f'<div class="question-box"><strong>Question:</strong><br>{question}</div>', unsafe_allow_html=True)
