@@ -244,34 +244,43 @@ def main():
                 st.warning("Please upload at least one PDF, PPT, or DOC document before processing.")
 
     if st.session_state.processed:
-        col1, col2 = st.columns([8, 2])
-        with col1:
-            user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")
-        with col2:
-            if st.button("Clear", key="clear_chat"):
-                st.session_state.qa_pairs = []
+    col1, col2 = st.columns([8, 2])
+    with col1:
+        # Display the text input and bind it to the session state
+        user_question = st.text_input(
+            "Ask a question:", 
+            "", 
+            key="question", 
+            help="Type your question here"
+        )
+    with col2:
+        if st.button("Clear", key="clear_chat"):
+            st.session_state.qa_pairs = []
 
-        if user_question:
-            with st.spinner('Loading...'):
-                answer = user_input(user_question)
-                if not st.session_state.qa_pairs or st.session_state.qa_pairs[-1][0] != user_question:
-                    st.session_state.qa_pairs.append((user_question, answer))
+    if user_question:
+        with st.spinner('Loading...'):
+            answer = user_input(user_question)
+            if not st.session_state.qa_pairs or st.session_state.qa_pairs[-1][0] != user_question:
+                st.session_state.qa_pairs.append((user_question, answer))
+            
+            # Clear the question input box after processing
+            st.session_state.question = ""
 
-        for question, answer in reversed(st.session_state.qa_pairs):
-            st.markdown(f'<div class="question-box"><strong>Question:</strong><br>{question}</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{answer}</div>', unsafe_allow_html=True)
+    for question, answer in reversed(st.session_state.qa_pairs):
+        st.markdown(f'<div class="question-box"><strong>Question:</strong><br>{question}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{answer}</div>', unsafe_allow_html=True)
 
-        if st.session_state.qa_pairs:
-            if st.button("Generate PDF"):
-                pdf_buffer = generate_pdf(st.session_state.qa_pairs)
-                st.download_button(
-                    label="Download PDF",
-                    data=pdf_buffer,
-                    file_name="conversations.pdf",
-                    mime="application/pdf"
-                )
-    else:
-        st.info("Please upload and process a document to start asking questions.")
+    if st.session_state.qa_pairs:
+        if st.button("Generate PDF"):
+            pdf_buffer = generate_pdf(st.session_state.qa_pairs)
+            st.download_button(
+                label="Download PDF",
+                data=pdf_buffer,
+                file_name="conversations.pdf",
+                mime="application/pdf"
+            )
+else:
+    st.info("Please upload and process a document to start asking questions.")
 
 if __name__ == '__main__':
     main()
