@@ -10,7 +10,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
-from fpdf import FPDF2 as FPDF
+from fpdf2 import FPDF2 as FPDF
 
 load_dotenv()
 
