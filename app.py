@@ -243,7 +243,7 @@ def main():
             else:
                 st.warning("Please upload at least one PDF, PPT, or DOC document before processing.")
 
-    if st.session_state.processed:
+if st.session_state.processed:
     col1, col2 = st.columns([8, 2])
     with col1:
         # Display the text input and bind it to the session state
