@@ -252,7 +252,7 @@ def main():
                 st.session_state.qa_pairs = []
 
         if user_question:
-            with st.spinner('Fetching answer...'):
+            with st.spinner():
                 answer = user_input(user_question)
                 if not st.session_state.qa_pairs or st.session_state.qa_pairs[-1][0] != user_question:
                     st.session_state.qa_pairs.append((user_question, answer))
