@@ -87,9 +87,6 @@ def user_input(user_question):
         return "Answer cannot be found"  
     return answer  
 
-def sanitize_text(text):  
-    return text.encode('latin1', 'replace').decode('latin1') 
-
 def generate_pdf(qa_pairs):  
     pdf = FPDF()  
     pdf.set_auto_page_break(auto=True, margin=15)  
@@ -234,7 +231,7 @@ def main():
             if st.button("Download Conversation as PDF"):  
                 pdf_path = generate_pdf(st.session_state.qa_pairs)  
                 with open(pdf_path, "rb") as file:  
-                    st.download_button("Download PDF", file, file_name="Chat_Conversation.pdf")  
+                    st.download_button("Download PDF", file, file_name="chat_conversation.pdf")  
     else:  
         st.info("Please upload and process a document to start asking questions.")  
 
