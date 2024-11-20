@@ -12,12 +12,15 @@ from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from reportlab.lib.utils import simpleSplit
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
 import io
 
+# Load environment variables
 load_dotenv()
 
-# Configure the Google API key
-# Ensure you have your Google API key set in your environment variable: GOOGLE_API_KEY
+# Function to extract text from PDF files
 def get_pdf_text(pdf_docs):
     text = ""
     for pdf in pdf_docs:
@@ -26,6 +29,7 @@ def get_pdf_text(pdf_docs):
             text += page.extract_text()
     return text
 
+# Function to extract text from PPT files
 def get_ppt_text(ppt_docs):
     text = ""
     for ppt in ppt_docs:
@@ -36,6 +40,7 @@ def get_ppt_text(ppt_docs):
                     text += shape.text + " "
     return text
 
+# Function to extract text from DOC files
 def get_doc_text(doc_docs):
     text = ""
     for doc in doc_docs:
@@ -44,6 +49,7 @@ def get_doc_text(doc_docs):
             text += para.text + " "
     return text
 
+# Function to split text into smaller chunks
 def get_text_chunks(text):
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=10000,
@@ -52,11 +58,13 @@ def get_text_chunks(text):
     chunks = text_splitter.split_text(text)
     return chunks
 
+# Function to create a vector store
 def get_vector_store(text_chunks):
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
     vector_store.save_local("faiss_index")
 
+# Function to create a conversational chain
 def get_conversational_chain():
     prompt_template = """
     Answer the question as detailed as possible from the provided context, make sure to provide all the details, 
@@ -72,6 +80,7 @@ def get_conversational_chain():
     chain = load_qa_chain(model, chain_type="stuff", prompt=prompt)
     return chain
 
+# Function to handle user input
 def user_input(user_question):
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
@@ -89,67 +98,58 @@ def user_input(user_question):
         return "Answer cannot be found"
     return answer
 
+# Function to generate a PDF with wrapped text and bold questions
 def generate_pdf(qa_pairs):
     pdf_buffer = io.BytesIO()
     c = canvas.Canvas(pdf_buffer, pagesize=letter)
+    pdfmetrics.registerFont(TTFont("Helvetica-Bold", "Helvetica-Bold.ttf"))
     c.setFont("Helvetica", 12)
-    
-    y = 750  # Start position on the page
-    for idx, (question, answer) in enumerate(qa_pairs, start=1):
-        c.drawString(30, y, f"Q{idx}: {question}")
-        y -= 20
-        c.drawString(30, y, f"A{idx}: {answer}")
-        y -= 40
-        if y < 50:  # Create a new page if space is insufficient
-            c.showPage()
+
+    # Constants for layout
+    margin = 30
+    line_height = 15
+    page_width, page_height = letter
+    usable_width = page_width - 2 * margin
+    y = page_height - margin
+
+    def draw_wrapped_text(c, text, x, y, width, is_bold=False):
+        """Draw wrapped text, with optional bold font."""
+        if is_bold:
+            c.setFont("Helvetica-Bold", 12)
+        else:
             c.setFont("Helvetica", 12)
-            y = 750
-    
+        
+        lines = simpleSplit(text, c._fontname, c._fontsize, width)
+        for line in lines:
+            c.drawString(x, y, line)
+            y -= line_height
+        return y
+
+    for idx, (question, answer) in enumerate(qa_pairs, start=1):
+        if y < margin + line_height * 4:  # Add a new page if space is insufficient
+            c.showPage()
+            y = page_height - margin
+
+        y = draw_wrapped_text(c, f"Q{idx}: {question}", margin, y, usable_width, is_bold=True)
+        y -= line_height  # Add spacing between question and answer
+        y = draw_wrapped_text(c, f"A{idx}: {answer}", margin, y, usable_width, is_bold=False)
+        y -= line_height  # Add spacing between Q&A pairs
+
     c.save()
     pdf_buffer.seek(0)
     return pdf_buffer
 
+# Main Streamlit app
 def main():
     st.set_page_config(page_title="ChatDoc", page_icon=":books:")
     st.markdown("""
     <style>
-    .main {  
-        padding: 20px;  
-    }
-    .stTextInput > div > div > input {  
-        border: 1px solid #ddd;  
-        border-radius: 10px;  
-        padding: 10px;  
-        font-size: 18px;  
-    }
-    .stButton button {  
-        background-color: #4CAF50;  
-        color: white;  
-        padding: 10px 20px;  
-        border-radius: 10px;  
-        border: none;  
-        font-size: 18px;  
-        cursor: pointer;  
-    }
-    .stButton button:hover {  
-        background-color: #45a049;  
-    }
-    .question-box {  
-        border: 2px solid #2196F3;  
-        border-radius: 10px;  
-        padding: 15px;  
-        margin-bottom: 20px;  
-        background-color: #2b313e;  
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);  
-    }
-    .answer-box {  
-        border: 2px solid #4CAF50;  
-        border-radius: 10px;  
-        padding: 20px;  
-        margin-bottom: 20px;  
-        background-color: #475063;  
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);  
-    }   
+    .main { padding: 20px; }
+    .stTextInput > div > div > input { border: 1px solid #ddd; border-radius: 10px; padding: 10px; font-size: 18px; }
+    .stButton button { background-color: #4CAF50; color: white; padding: 10px 20px; border-radius: 10px; font-size: 18px; cursor: pointer; }
+    .stButton button:hover { background-color: #45a049; }
+    .question-box { border: 2px solid #2196F3; border-radius: 10px; padding: 15px; margin-bottom: 20px; background-color: #2b313e; }
+    .answer-box { border: 2px solid #4CAF50; border-radius: 10px; padding: 20px; margin-bottom: 20px; background-color: #475063; }
     </style>
     """, unsafe_allow_html=True)
 
