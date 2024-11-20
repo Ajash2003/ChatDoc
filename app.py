@@ -262,7 +262,7 @@ def main():
             st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{answer}</div>', unsafe_allow_html=True)
 
         if st.session_state.qa_pairs:
-            if st.button("Generate PDF of Conversations"):
+            if st.button("Generate PDF"):
                 pdf_buffer = generate_pdf(st.session_state.qa_pairs)
                 st.download_button(
                     label="Download PDF",
