@@ -122,8 +122,8 @@ def generate_pdf(qa_pairs):
     story = []
     
     # Add title
-    title = Paragraph("Chat Conversation", title_style)
-    story.append(title)
+    #title = Paragraph("Chat Conversation", title_style)
+    #story.append(title)
     
     # Add QA pairs
     for idx, (question, answer) in enumerate(qa_pairs, start=1):
