@@ -10,7 +10,6 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains.question_answering import load_qa_chain  
 from langchain.prompts import PromptTemplate  
 from dotenv import load_dotenv  
-from fpdf import FPDF  
 
 load_dotenv()  
 
@@ -87,26 +86,6 @@ def user_input(user_question):
         return "Answer cannot be found"  
     return answer  
 
-def generate_pdf(qa_pairs):  
-    pdf = FPDF()  
-    pdf.set_auto_page_break(auto=True, margin=15)  
-    pdf.add_page()  
-    pdf.set_font("Arial", size=12)  
-
-    pdf.cell(200, 10, txt="Chat Conversation", ln=True, align='C')  
-    pdf.ln(10)  
-
-    for idx, (question, answer) in enumerate(qa_pairs, start=1):  
-        pdf.set_font("Arial", style="B", size=12)  
-        pdf.cell(0, 10, txt=f"Q{idx}: {question}", ln=True)  
-        pdf.set_font("Arial", size=12)  
-        pdf.multi_cell(0, 10, txt=f"A{idx}: {answer}")  
-        pdf.ln(5)  
-
-    file_path = "chat_conversation.pdf"  
-    pdf.output(file_path)  
-    return file_path  
-
 def main():  
     st.set_page_config(page_title="ChatDoc", page_icon=":books:")  
     st.markdown("""  
@@ -180,6 +159,7 @@ def main():
     if "qa_pairs" not in st.session_state:  
         st.session_state.qa_pairs = []  
 
+    # Check if documents have been uploaded and processed  
     if "processed" not in st.session_state:  
         st.session_state.processed = False  
 
@@ -209,6 +189,7 @@ def main():
                 st.warning("Please upload at least one PDF, PPT, or DOC document before processing.")  
 
     if st.session_state.processed:  
+        # Place question input in a single column  
         col1, col2 = st.columns([8, 2])
         with col1:
             user_question = st.text_input("Ask a question:", "", key="question", help="Type your question here")  
@@ -219,6 +200,7 @@ def main():
         if user_question:  
             with st.spinner('Fetching answer...'):  
                 answer = user_input(user_question)  
+                # Store the question and answer in session state only if it's a new question  
                 if not st.session_state.qa_pairs or st.session_state.qa_pairs[-1][0] != user_question:  
                     st.session_state.qa_pairs.append((user_question, answer))  
 
@@ -226,12 +208,6 @@ def main():
         for question, answer in reversed(st.session_state.qa_pairs):  
             st.markdown(f'<div class="question-box"><strong>Question:</strong><br>{question}</div>', unsafe_allow_html=True)  
             st.markdown(f'<div class="answer-box"><strong>Answer:</strong><br>{answer}</div>', unsafe_allow_html=True)  
-
-        if st.session_state.qa_pairs:  
-            if st.button("Download Conversation as PDF"):  
-                pdf_path = generate_pdf(st.session_state.qa_pairs)  
-                with open(pdf_path, "rb") as file:  
-                    st.download_button("Download PDF", file, file_name="chat_conversation.pdf")  
     else:  
         st.info("Please upload and process a document to start asking questions.")  
 
