@@ -194,10 +194,23 @@ def main():
         border: 1px solid #2b313e;
         border-radius: 10px;
     }
+    .header {
+        font-size: 24px;
+        font-weight: bold;
+        padding: 20px 0;
+    }
+    .footer {
+        font-size: 14px;
+        color: #888;
+        padding: 10px 0;
+        text-align: center;
+    }
     </style>
     """, unsafe_allow_html=True)
 
     st.header("ChatDoc :books:")
+    st.markdown('<div class="header">Chat with your Documents Here</div>', unsafe_allow_html=True)
+
 
     if "qa_pairs" not in st.session_state:
         st.session_state.qa_pairs = []
