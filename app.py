@@ -4,7 +4,7 @@ from pptx import Presentation
 import docx
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import os
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains.question_answering import load_qa_chain
