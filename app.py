@@ -145,6 +145,7 @@ def generate_pdf(qa_pairs):
 
 def main():
     st.set_page_config(page_title="ChatDoc", page_icon=":books:")
+    st.markdown('<div class="footer">©Arijeet Jash</div>', unsafe_allow_html=True)
     st.markdown("""
     <style>
     .main {  
